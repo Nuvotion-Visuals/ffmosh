@@ -59,6 +59,7 @@ builds should work with GCC or Clang; Windows builds are untested.
 
 ```
 ./configure \
+    --install-name-dir=@rpath \
     --enable-shared \
     --disable-static \
     --disable-programs \
@@ -76,6 +77,12 @@ builds should work with GCC or Clang; Windows builds are untested.
     --enable-protocol=file,pipe
 make -j
 ```
+
+`--install-name-dir=@rpath` is macOS-specific: it bakes
+`@rpath/libavcodec.61.dylib` (and friends) into each shared library's
+`LC_ID_DYLIB`, so the consuming application finds them via its own
+`@rpath` rather than at a hard-coded absolute path. Required for
+bundling into Nuvotion's `.app`. Harmless on Linux (ignored).
 
 The encoders are pulled in deliberately: FFglitch's transplication
 path calls into encoder helpers (motion-vector encoding, Huffman
