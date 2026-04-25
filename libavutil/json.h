@@ -129,7 +129,7 @@ void *json_allocator_strndup(json_ctx_t *jctx, const void *src, size_t len);
 static inline
 void *json_allocator_strdup(json_ctx_t *jctx, const void *src)
 {
-    return json_allocator_strndup(jctx, src, strlen(src)+1);
+    return json_allocator_strndup(jctx, src, strlen((const char *)src)+1);
 }
 void json_ctx_free(json_ctx_t *jctx);
 json_t *alloc_json_t(json_ctx_t *jctx);
@@ -186,8 +186,8 @@ json_t *json_array_new_uninit(json_ctx_t *jctx, size_t len)
 {
     json_t *jso = alloc_json_t(jctx);
     jso->flags = JSON_TYPE_ARRAY;
-    jso->arr = json_allocator_get(jctx, sizeof(json_arr_t));
-    jso->arr->data = json_allocator_get(jctx, len * sizeof(json_t *));
+    jso->arr = (json_arr_t *)json_allocator_get(jctx, sizeof(json_arr_t));
+    jso->arr->data = (json_t **)json_allocator_get(jctx, len * sizeof(json_t *));
     json_set_len(jso, len);
     return jso;
 }
@@ -239,7 +239,7 @@ static inline
 int json_make_array_of_ints(json_ctx_t *jctx, json_t *jso, size_t len)
 {
     jso->flags = JSON_TYPE_ARRAY_OF_INTS | len;
-    jso->array_of_ints = json_allocator_get(jctx, len * sizeof(int32_t));
+    jso->array_of_ints = (int32_t *)json_allocator_get(jctx, len * sizeof(int32_t));
     return 0;
 }
 
@@ -285,7 +285,7 @@ static inline
 json_t *json_string_len_new(json_ctx_t *jctx, const char *str, size_t len)
 {
     json_t *jso = alloc_json_t(jctx);
-    char *ptr = json_allocator_strget(jctx, len+1);
+    char *ptr = (char *)json_allocator_strget(jctx, len+1);
     memcpy(ptr, str, len);
     ptr[len] = '\0';
     jso->flags = JSON_TYPE_STRING;
