@@ -441,8 +441,8 @@ void mv_export_init_internal(
     ctx->data[2] = json_mv2darray_new(jctx, mb_width, mb_height, max_nb_blocks, -1);
     ctx->fcode = json_array_of_ints_new(jctx, nb_fcodes);
     ctx->bcode = json_array_of_ints_new(jctx, nb_fcodes);
-    ctx->overflow = json_string_new(jctx, "warn");
-    ctx->overflow_action = MV_OVERFLOW_ASSERT;
+    ctx->overflow = json_string_new(jctx, "truncate");
+    ctx->overflow_action = MV_OVERFLOW_TRUNCATE;
 
     json_set_pflags(ctx->fcode, JSON_PFLAGS_NO_LF);
     json_set_pflags(ctx->bcode, JSON_PFLAGS_NO_LF);
@@ -545,7 +545,7 @@ void mv_import_init(
 {
     json_t *jframe = f->ffedit_sd[feat];
     ffe_mv_ctx *ctx = json_allocator_get0(jctx, sizeof(ffe_mv_ctx));
-    int overflow_action = MV_OVERFLOW_ASSERT;
+    int overflow_action = MV_OVERFLOW_TRUNCATE;
     json_object_userdata_set(jframe, ctx);
     ctx->data[0] = json_object_get(jframe, "forward");
     ctx->data[1] = json_object_get(jframe, "backward");
