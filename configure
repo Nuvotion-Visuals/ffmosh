@@ -1851,11 +1851,9 @@ EXTERNAL_AUTODETECT_LIBRARY_LIST="
     libxcb_shape
     libxcb_xfixes
     libxvid
-    libzmq
     lzma
     mediafoundation
     metal
-    rtmidi
     schannel
     sdl2
     securetransport
@@ -2011,7 +2009,6 @@ HWACCEL_AUTODETECT_LIBRARY_LIST="
 EXTRALIBS_LIST="
     cpu_init
     cws2fws
-    ffjs
 "
 
 HWACCEL_LIBRARY_NONFREE_LIST="
@@ -2072,7 +2069,6 @@ PROGRAM_LIST="
     ffplay
     ffprobe
     ffmpeg
-    ffedit
 "
 
 SUBSYSTEM_LIST="
@@ -3993,7 +3989,6 @@ qsv_transcode_example_deps="avcodec avformat avutil h264_qsv_encoder"
 # EXTRALIBS_LIST
 cpu_init_extralibs="pthreads_extralibs"
 cws2fws_extralibs="zlib_extralibs"
-ffjs_extralibs="libzmq_extralibs rtmidi_extralibs"
 
 # libraries, in any order
 avcodec_deps="avutil"
@@ -4015,7 +4010,7 @@ swscale_suggest="libm stdatomic"
 
 avcodec_extralibs="pthreads_extralibs iconv_extralibs dxva2_extralibs lcms2_extralibs"
 avfilter_extralibs="pthreads_extralibs"
-avutil_extralibs="d3d11va_extralibs d3d12va_extralibs mediacodec_extralibs libzmq_extralibs nanosleep_extralibs pthreads_extralibs rtmidi_extralibs sdl2_extralibs vaapi_drm_extralibs vaapi_x11_extralibs vaapi_win32_extralibs vdpau_x11_extralibs"
+avutil_extralibs="d3d11va_extralibs d3d12va_extralibs mediacodec_extralibs nanosleep_extralibs pthreads_extralibs vaapi_drm_extralibs vaapi_x11_extralibs vaapi_win32_extralibs vdpau_x11_extralibs"
 
 # programs
 ffmpeg_deps="avcodec avfilter avformat threads"
@@ -4028,8 +4023,6 @@ ffplay_select="crop_filter transpose_filter hflip_filter vflip_filter rotate_fil
 ffplay_suggest="shell32 libplacebo vulkan"
 ffprobe_deps="avcodec avformat"
 ffprobe_suggest="shell32"
-ffedit_deps="avcodec avformat"
-ffedit_deps_any="libdl LoadLibrary"
 
 # documentation
 podpages_deps="perl"

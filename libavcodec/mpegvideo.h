@@ -48,7 +48,6 @@
 #include "qpeldsp.h"
 #include "videodsp.h"
 
-#include "libavutil/script.h"
 #include "ffedit_xp_bits.h"
 
 #define MAX_THREADS 32
@@ -546,14 +545,6 @@ typedef struct MpegEncContext {
     int noise_reduction;
 
     int intra_penalty;
-
-    /* ffgac extra */
-    char *mb_type_script_fname;
-    FFScriptContext *mb_type_script;
-    FFScriptObject *mb_type_func;
-    char *pict_type_script_fname;
-    FFScriptContext *pict_type_script;
-    FFScriptObject *pict_type_func;
 
     /* ffedit bitstream */
     FFEditTransplicateBitsContext ffe_xp;
