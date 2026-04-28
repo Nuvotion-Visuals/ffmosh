@@ -24,6 +24,7 @@
 #include "dict.h"
 #include "frame.h"
 #include "imgutils.h"
+#include "json.h"
 #include "mem.h"
 #include "samplefmt.h"
 #include "hwcontext.h"
@@ -321,7 +322,10 @@ FF_ENABLE_DEPRECATION_WARNINGS
     av_dict_copy(&dst->metadata, src->metadata, 0);
 
     memcpy(dst->ffedit_sd, src->ffedit_sd, sizeof(dst->ffedit_sd));
-    dst->jctx = src->jctx;
+    /* Share ownership of the JSON context so dst stays valid past src's
+     * lifetime. ffedit_sd[] entries point into jctx's allocator pool, so
+     * the memcpy above is safe as long as jctx outlives both frames. */
+    dst->jctx = json_ctx_ref(src->jctx);
     for (int i = 0; i < src->nb_side_data; i++) {
         const AVFrameSideData *sd_src = src->side_data[i];
         AVFrameSideData *sd_dst;
@@ -581,7 +585,10 @@ void av_frame_unref(AVFrame *frame)
         return;
 
     memset(frame->ffedit_sd, 0x00, sizeof(frame->ffedit_sd));
-    frame->jctx = NULL;
+    /* Release our share of the refcounted JSON context. The allocator
+     * chunks (which back ffedit_sd[] entries) and the struct itself are
+     * freed only when the last frame/packet reference goes away. */
+    json_ctx_unref((json_ctx_t **) &frame->jctx);
     frame_side_data_wipe(frame);
 
     for (int i = 0; i < FF_ARRAY_ELEMS(frame->buf); i++)

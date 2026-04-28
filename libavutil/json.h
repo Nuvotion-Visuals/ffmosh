@@ -117,6 +117,16 @@ struct json_ctx_t {
 
     /* for multi-threading */
     json_ctx_t *next;
+
+    /* Refcount for shared ownership across AVFrame/AVPacket copies.
+     * Only meaningful on heap-allocated head contexts that opt into
+     * refcounting via json_ctx_ref / json_ctx_unref. Chain (next) elements
+     * and stack-allocated contexts ignore this field.
+     *
+     * json_ctx_start initialises to 1 (sole owner). json_ctx_free is
+     * unchanged — it always frees the allocator chunks. json_ctx_unref is
+     * the new function that decrements and only frees+av_free's at zero. */
+    int refcount;
 };
 
 void json_ctx_start(json_ctx_t *jctx, int large);
@@ -132,6 +142,15 @@ void *json_allocator_strdup(json_ctx_t *jctx, const void *src)
     return json_allocator_strndup(jctx, src, strlen((const char *)src)+1);
 }
 void json_ctx_free(json_ctx_t *jctx);
+
+/* Increment the refcount of a heap-allocated jctx. Returns the same pointer
+ * for convenience: dst->jctx = json_ctx_ref(src->jctx); */
+json_ctx_t *json_ctx_ref(json_ctx_t *jctx);
+
+/* Decrement the refcount of a heap-allocated jctx. If it reaches zero, free
+ * the allocator chunks (via json_ctx_free) and av_free the struct. Always
+ * sets *pjctx to NULL so the caller's pointer is left in a valid state. */
+void json_ctx_unref(json_ctx_t **pjctx);
 json_t *alloc_json_t(json_ctx_t *jctx);
 
 typedef struct json_error_ctx_t json_error_ctx_t;

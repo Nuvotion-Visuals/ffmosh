@@ -24,6 +24,7 @@
 #include "libavutil/avassert.h"
 #include "libavutil/avutil.h"
 #include "libavutil/intreadwrite.h"
+#include "libavutil/json.h"
 #include "libavutil/mathematics.h"
 #include "libavutil/mem.h"
 #include "libavutil/rational.h"
@@ -423,7 +424,9 @@ int av_packet_copy_props(AVPacket *dst, const AVPacket *src)
         memcpy(dst_data, src_data, size);
     }
     memcpy(dst->ffedit_sd, src->ffedit_sd, sizeof(dst->ffedit_sd));
-    dst->jctx = src->jctx;
+    /* Share ownership of the JSON context (see same comment in
+     * libavutil/frame.c::frame_copy_props). */
+    dst->jctx = json_ctx_ref(src->jctx);
 
     return 0;
 }
@@ -433,6 +436,11 @@ void av_packet_unref(AVPacket *pkt)
     av_packet_free_side_data(pkt);
     av_buffer_unref(&pkt->opaque_ref);
     av_buffer_unref(&pkt->buf);
+    /* Release our share of the refcounted JSON context. ffedit_sd[] entries
+     * point into jctx's allocator pool so they're invalidated when the
+     * last reference drops. get_packet_defaults below also nulls jctx and
+     * ffedit_sd[], but does NOT free — we have to do that here. */
+    json_ctx_unref((json_ctx_t **) &pkt->jctx);
     get_packet_defaults(pkt);
 }
 

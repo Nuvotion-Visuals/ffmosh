@@ -23,6 +23,7 @@
  */
 
 #include "json.h"
+#include "mem.h"
 
 //---------------------------------------------------------------------
 void json_ctx_start(json_ctx_t *jctx, int large)
@@ -41,6 +42,11 @@ void json_ctx_start(json_ctx_t *jctx, int large)
 
     jctx->data_chunk = large ? LARGE_DATA_CHUNK : SMALL_DATA_CHUNK;
     jctx->str_chunk = large ? LARGE_STR_CHUNK : SMALL_STR_CHUNK;
+
+    /* Initial refcount: caller is the sole owner. Only meaningful for
+     * heap-allocated contexts that opt into refcounting via json_ctx_ref
+     * / json_ctx_unref; stack contexts and chained next-elements ignore. */
+    jctx->refcount = 1;
 }
 
 //---------------------------------------------------------------------
@@ -147,6 +153,28 @@ void json_ctx_free(json_ctx_t *jctx)
     }
     json_allocator_free(&jctx->data);
     json_allocator_free(&jctx->str);
+}
+
+/* Refcount-aware shared ownership for heap-allocated head contexts.
+ * Required so AVFrame::jctx and AVPacket::jctx can be safely shared by
+ * av_frame_ref / av_packet_ref / *_copy_props without double-free or leaks. */
+json_ctx_t *json_ctx_ref(json_ctx_t *jctx)
+{
+    if ( jctx != NULL )
+        jctx->refcount++;
+    return jctx;
+}
+
+void json_ctx_unref(json_ctx_t **pjctx)
+{
+    json_ctx_t *jctx;
+    if ( pjctx == NULL || (jctx = *pjctx) == NULL )
+        return;
+    *pjctx = NULL;
+    if ( --jctx->refcount > 0 )
+        return;
+    json_ctx_free(jctx);
+    av_free(jctx);
 }
 
 json_t *alloc_json_t(json_ctx_t *jctx)
