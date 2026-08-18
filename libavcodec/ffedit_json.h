@@ -53,6 +53,7 @@ ffe_jmb_new(
         int pflags);
 void
 ffe_jmb_set_context(
+        json_ctx_t *jctx,
         json_t *jso,
         int nb_components,
         int *v_count,

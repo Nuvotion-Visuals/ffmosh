@@ -554,7 +554,7 @@ ffe_mpeg12_import_dct_init(MpegEncContext *s, AVFrame *f)
     if ( !s->chroma_y_shift )
         v_count[1] = v_count[2] = 2;
 
-    ffe_jmb_set_context(jframe, nb_components, v_count, h_count);
+    ffe_jmb_set_context(s->jctx, jframe, nb_components, v_count, h_count);
 }
 
 typedef struct {

@@ -99,7 +99,7 @@ ffe_dct_import_scan(MJpegDecodeContext *s, int nb_components)
     enum FFEditFeature i_dct_feat = i_which_dct_feat(s);
     AVFrame *f = s->picture_ptr;
     json_t *jframe = f->ffedit_sd[i_dct_feat];
-    ffe_jmb_set_context(jframe, nb_components, s->v_scount, s->h_scount);
+    ffe_jmb_set_context(s->jctx, jframe, nb_components, s->v_scount, s->h_scount);
 }
 
 //---------------------------------------------------------------------
@@ -298,6 +298,10 @@ ffe_mjpeg_dct_term(
             {
                 block[j] = level * (unsigned)quant_matrix[i];
                 last_index = i;
+            }
+            else if ( i_dct_feat == FFEDIT_FEAT_Q_DCT )
+            {
+                block[j] = 0;
             }
         }
     }
@@ -753,6 +757,10 @@ ffe_mjpeg_frame_unref(AVFrame *f)
     void *jctx = NULL;
     memcpy(ffedit_sd, f->ffedit_sd, sizeof(json_t *)*FFEDIT_FEAT_LAST);
     jctx = f->jctx;
+    /* av_frame_unref drops the jctx refcount (and frees the arena at zero),
+     * so take a reference to carry the raw pointer across the unref. */
+    if ( jctx != NULL )
+        json_ctx_ref(jctx);
     av_frame_unref(f);
     memcpy(f->ffedit_sd, ffedit_sd, sizeof(json_t *)*FFEDIT_FEAT_LAST);
     f->jctx = jctx;
@@ -799,6 +807,9 @@ ffe_mjpeg_prepare_frame(AVCodecContext *avctx, MJpegDecodeContext *s, const AVPa
     {
         /* create one jctx for each exported frame */
         AVFrame *f = s->picture_ptr;
+        /* release the previous frame's reference before overwriting, or the
+         * arena leaks once ffe_mjpeg_frame_unref preserves it across SOF */
+        json_ctx_unref((json_ctx_t **) &f->jctx);
         f->jctx = av_mallocz(sizeof(json_ctx_t));
         json_ctx_start(f->jctx, 1);
         s->jctx = f->jctx;

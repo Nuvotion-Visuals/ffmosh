@@ -143,7 +143,7 @@ ffe_jmb_new(
         json_object_add(jscan, "quant_index", jquant_index);
     }
 
-    ffe_jmb_set_context(jscan, nb_components, v_count, h_count);
+    ffe_jmb_set_context(jctx, jscan, nb_components, v_count, h_count);
 
     return jscan;
 }
@@ -151,12 +151,13 @@ ffe_jmb_new(
 //---------------------------------------------------------------------
 void
 ffe_jmb_set_context(
+        json_ctx_t *jctx,
         json_t *jso,
         int nb_components,
         int *v_count,
         int *h_count)
 {
-    mb_array_ctx *ctx = av_mallocz(sizeof(mb_array_ctx));
+    mb_array_ctx *ctx = json_allocator_get0(jctx, sizeof(mb_array_ctx));
 
     for ( size_t component = 0; component < nb_components; component++ )
     {
