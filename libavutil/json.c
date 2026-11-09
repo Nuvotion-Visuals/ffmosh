@@ -23,6 +23,7 @@
  */
 
 #include "json.h"
+#include "macros.h"
 #include "mem.h"
 
 //---------------------------------------------------------------------
@@ -97,7 +98,10 @@ static void *json_allocator_get_internal(
 
 void *json_allocator_get(json_ctx_t *jctx, size_t len)
 {
-    return json_allocator_get_internal(&jctx->data, jctx->data_chunk, len);
+    /* Whole multiples of json_t's alignment, so the allocation after an
+     * odd-length int32_t array still holds a json_t or a pointer array. */
+    return json_allocator_get_internal(&jctx->data, jctx->data_chunk,
+                                       FFALIGN(len, _Alignof(json_t)));
 }
 
 void *json_allocator_get0(json_ctx_t *jctx, size_t len)
